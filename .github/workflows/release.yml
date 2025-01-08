@@ -21,14 +21,38 @@ jobs:
     steps:
       - name: Clone LLVM and AMD projects
         run: |
-            mkdir -p ${{ github.workspace }}/llvm-project/amd/comgr/build/
-            echo x > ${{ github.workspace }}/llvm-project/amd/comgr/build/libamd_comgr.dylib
+          git clone --depth 1 -b rocm-6.1.x https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
+          cd ${{ github.workspace }}/llvm-project
+          git checkout 669db884972e769450470020c06a6f132a8a065b
+          rm -rf .git
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install --formula cmake rust
+      - name: Build LLVM
+        run: |
+          cd ${{ github.workspace }}/llvm-project
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang;lld" -DLLVM_TARGETS_TO_BUILD="AMDGPU" ../llvm
+          make -j$(sysctl -n hw.ncpu)
+      - name: Build device-libs
+        run: |
+          cd ${{ github.workspace }}/llvm-project/amd/device-libs
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-project/build" ..
+          make -j$(sysctl -n hw.ncpu)
+      - name: Build comgr
+        run: |
+          cd ${{ github.workspace }}/llvm-project/amd/comgr
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-project/build;${{ github.workspace }}/llvm-project/amd/device-libs/build" -DCOMGR_DISABLE_SPIRV=1 -DBUILD_TESTING=OFF ..
+          make -j$(sysctl -n hw.ncpu)
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v6.1.0
-          name: Release v6.1.0
+          tag_name: v6.1.x
+          name: Release v6.1.x
           draft: false
           prerelease: false
           generate_release_notes: true
