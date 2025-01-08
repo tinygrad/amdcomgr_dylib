@@ -27,7 +27,8 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ github.ref_name }}
+          tag_name: v6.1.0
+          name: Release v6.1.0
           draft: false
           prerelease: false
           generate_release_notes: true
