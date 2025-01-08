@@ -22,7 +22,7 @@ jobs:
       - name: Clone LLVM and AMD projects
         run: |
             mkdir -p ${{ github.workspace }}/llvm-project/amd/comgr/build/
-            echo x > libamd_comgr.dylib
+            echo x > ${{ github.workspace }}/llvm-project/amd/comgr/build/libamd_comgr.dylib
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
