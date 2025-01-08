@@ -15,24 +15,23 @@ jobs:
   osxbuild:
     name: Build on MacOS
     runs-on: macos-15
+    permissions:
+      contents: write
     timeout-minutes: 60
     steps:
       - name: Clone LLVM and AMD projects
         run: |
             mkdir -p ${{ github.workspace }}/llvm-project/amd/comgr/build/
             echo x > libamd_comgr.dylib
-      - name: Create GitHub Release
+      - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: v6.1.0
-          release_name: Build v6.1.0
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-      - name: Upload libamd_comgr.dylib to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/llvm-project/amd/comgr/build/libamd_comgr.dylib
-          asset_name: libamd_comgr.dylib
-          asset_content_type: application/octet-stream
+          generate_release_notes: true
+          files: |
+            ${{ github.workspace }}/llvm-project/amd/comgr/build/libamd_comgr.dylib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
