@@ -1,0 +1,60 @@
+name: Build Release
+env:
+  DOWNLOAD_CACHE_VERSION: '8'
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PYTHONPATH: .
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  osxbuild:
+    name: Build on MacOS
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Clone LLVM and AMD projects
+        if: matrix.backend == 'amd'
+        run: |
+          git clone --depth 1 -b rocm-6.1.x https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
+          cd ${{ github.workspace }}/llvm-project
+          git checkout 669db884972e769450470020c06a6f132a8a065b
+          rm -rf .git
+      - name: Install build dependencies
+        if: matrix.backend == 'amd'
+        run: |
+          brew update
+          brew install --formula cmake rust
+      - name: Build LLVM
+        if: matrix.backend == 'amd'
+        run: |
+          cd ${{ github.workspace }}/llvm-project
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang;lld" -DLLVM_TARGETS_TO_BUILD="AMDGPU" ../llvm
+          make -j$(sysctl -n hw.ncpu)
+      - name: Build device-libs
+        if: matrix.backend == 'amd'
+        run: |
+          cd ${{ github.workspace }}/llvm-project/amd/device-libs
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-project/build" ..
+          make -j$(sysctl -n hw.ncpu)
+      - name: Build comgr
+        if: matrix.backend == 'amd'
+        run: |
+          cd ${{ github.workspace }}/llvm-project/amd/comgr
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-project/build;${{ github.workspace }}/llvm-project/amd/device-libs/build" -DCOMGR_DISABLE_SPIRV=1 -DBUILD_TESTING=OFF ..
+          make -j$(sysctl -n hw.ncpu)
+      - name: Upload release
+        if: matrix.backend == 'amd'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.workspace }}/llvm-project/amd/comgr/build/libamd_comgr.dylib
+          asset_name: libamd_comgr.dylib
+          asset_content_type: application/octet-stream
