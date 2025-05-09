@@ -23,7 +23,6 @@ jobs:
         run: |
           git clone --depth 1 -b rocm-6.4.0 --single-branch https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
           cd ${{ github.workspace }}/llvm-project
-          git checkout 669db884972e769450470020c06a6f132a8a065b
           rm -rf .git
       - name: Install build dependencies
         run: |
