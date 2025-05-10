@@ -28,7 +28,10 @@ jobs:
       - name: Install build dependencies
         run: |
           brew update
-          brew install --formula cmake rust
+          brew install --formula rust
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.31.0"
       - name: Build LLVM
         run: |
           cd ${{ github.workspace }}/llvm-project
