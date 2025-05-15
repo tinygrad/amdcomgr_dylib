@@ -3,7 +3,7 @@ env:
   DOWNLOAD_CACHE_VERSION: '8'
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PYTHONPATH: .
-  RELEASE_VER: '6.4.0'
+  RELEASE_VER: '6.3.3'
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         run: |
           git clone --depth 1 -b rocm-${{ env.RELEASE_VER }} --single-branch https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
           cd ${{ github.workspace }}/llvm-project
-          git checkout c7fe45cf4b819c5991fe208aaa96edf142730f1d
+          git rev-parse HEAD
           rm -rf .git
       - name: Install build dependencies
         run: |
