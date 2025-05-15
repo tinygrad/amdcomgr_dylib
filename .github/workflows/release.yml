@@ -3,6 +3,7 @@ env:
   DOWNLOAD_CACHE_VERSION: '8'
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PYTHONPATH: .
+  RELEASE_VER: '6.3.3'
 
 on:
   push:
@@ -21,14 +22,17 @@ jobs:
     steps:
       - name: Clone LLVM and AMD projects
         run: |
-          git clone --depth 1 -b rocm-6.3.3 --single-branch https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
+          git clone --depth 1 -b rocm-${{ env.RELEASE_VER }} --single-branch https://github.com/ROCm/llvm-project ${{ github.workspace }}/llvm-project
           cd ${{ github.workspace }}/llvm-project
-          git checkout e5bf7e55c91490b07c49d8960fa7983d864936c4
+          git rev-parse HEAD
           rm -rf .git
       - name: Install build dependencies
         run: |
           brew update
-          brew install --formula cmake rust
+          brew install --formula rust
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.31.0"
       - name: Build LLVM
         run: |
           cd ${{ github.workspace }}/llvm-project
@@ -51,8 +55,8 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v6.1.x
-          name: Release v6.1.x
+          tag_name: v${{ env.RELEASE_VER }}
+          name: Release v${{ env.RELEASE_VER }}
           draft: false
           prerelease: false
           generate_release_notes: true
