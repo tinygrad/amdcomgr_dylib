@@ -3,7 +3,7 @@ env:
   DOWNLOAD_CACHE_VERSION: '8'
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PYTHONPATH: .
-  RELEASE_VER: '6.3.3'
+  RELEASE_VER: '6.4.1'
 
 on:
   push:
