@@ -3,7 +3,7 @@ env:
   DOWNLOAD_CACHE_VERSION: '8'
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PYTHONPATH: .
-  RELEASE_VER: '6.4.1'
+  RELEASE_VER: '7.2.0'
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
     runs-on: macos-15
     permissions:
       contents: write
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - name: Clone LLVM and AMD projects
         run: |
